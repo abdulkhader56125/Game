@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Emoji Input — Infinite Ocean Game (Home)</title>
+<meta name="description" content="Type the exact 2-emoji combo shown. 40s per round. Crazy roasts on wrong answers. Ocean/pink theme." />
+<style>
+  :root{
+    --ocean1:#e9f8ff; --ocean2:#ffeef6;
+    --accent:#ff7aa0; --accent-2:#6ecff6;
+    --muted:#29505b;
+    --success:#0db07a; --danger:#ff3864;
+    --glass: rgba(255,255,255,0.92);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;color:#07323d;-webkit-font-smoothing:antialiased}
+  body{
+    background: linear-gradient(180deg,var(--ocean1),var(--ocean2));
+    display:flex;align-items:center;justify-content:center;padding:22px;
+  }
+  .wrap{width:100%;max-width:920px;position:relative}
+  .homeBtn{position:absolute;right:12px;top:12px;background:transparent;border:2px solid rgba(255,122,160,0.18);padding:8px 12px;border-radius:10px;color:var(--accent);font-weight:800;cursor:pointer;text-decoration:none}
+  .card{background:var(--glass);border-radius:16px;padding:22px;box-shadow:0 20px 60px rgba(6,43,58,0.08);border:1px solid rgba(0,0,0,0.04)}
+  .head{display:flex;gap:16px;align-items:center}
+  .logo{width:72px;height:72px;border-radius:12px;background:linear-gradient(135deg,var(--accent-2),var(--accent));display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:22px;box-shadow:0 10px 30px rgba(255,122,160,0.12)}
+  h1{margin:0;font-size:20px}
+  .sub{color:var(--muted);font-size:13px;margin-top:6px}
+  .center{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:18px}
+  .displayBox{background:linear-gradient(180deg,#ffffff,rgba(255,255,255,0.96));padding:18px;border-radius:12px;min-width:320px;max-width:760px;text-align:center;border:1px solid rgba(0,0,0,0.03)}
+  .emojiLarge{font-size:88px;line-height:1;margin:6px 0}
+  .info{font-size:14px;color:var(--muted)}
+  .inputRow{display:flex;gap:12px;align-items:center;margin-top:12px;width:100%;justify-content:center;flex-wrap:wrap}
+  input[type="text"]{padding:12px 14px;border-radius:12px;border:1px solid rgba(0,0,0,0.06);min-width:260px;width:48%;font-size:18px;text-align:center}
+  .btn{padding:10px 14px;border-radius:12px;border:0;font-weight:800;cursor:pointer;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white}
+  .btn.ghost{background:transparent;border:2px dashed rgba(255,122,160,0.18);color:var(--accent)}
+  .feedback{margin-top:14px;padding:18px;border-radius:12px;border:1px solid rgba(0,0,0,0.04);min-height:120px;background:linear-gradient(180deg,#fff,#fffafc);width:100%}
+  .fbBig{font-size:20px;font-weight:900;margin-bottom:8px}
+  .fbSmall{font-size:15px;color:var(--muted)}
+  .statusRow{display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap;justify-content:center}
+  .timer{font-weight:900;color:#033642;font-size:18px}
+  .progress{width:260px;height:10px;background:rgba(0,0,0,0.05);border-radius:999px;overflow:hidden}
+  .progressFill{height:100%;width:0;background:linear-gradient(90deg,#6ecff6,#ff7aa0)}
+  .oceanFooter{height:10px;border-radius:999px;background:linear-gradient(90deg,rgba(110,207,246,0.22),rgba(255,122,160,0.18));margin-top:12px}
+  @media (max-width:720px){
+    .emojiLarge{font-size:64px}
+    input[type="text"]{width:100%}
+    .progress{width:100%}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap" role="main">
+    <a href="home.html" class="homeBtn" title="Home">🏠 Home</a>
+
+    <div class="card" aria-live="polite">
+      <div class="head">
+        <div class="logo">UB</div>
+        <div>
+          <h1>Emoji Input — The Unbreakable</h1>
+          <div class="sub">Type the exact <strong>two-emoji</strong> combo shown. 40s each. No options — use your keyboard. Infinite rounds. </div>
+        </div>
+      </div>
+
+      <div class="center">
+        <div class="displayBox" id="displayBox" aria-atomic="true">
+          <div class="emojiLarge" id="emojiDisplay">🌊🌸</div>
+          <div class="info" id="infoText">Type/paste the exact two emojis above (no spaces) and press Submit. If you miss — get ready for a roast.</div>
+        </div>
+
+        <div class="inputRow">
+          <input id="emojiInput" type="text" inputmode="text" autocomplete="off" autocapitalize="off" autocorrect="off" placeholder="Paste/type the two emojis here" />
+          <button id="submitBtn" class="btn">Submit</button>
+          <button id="nextBtn" class="btn ghost">Next</button>
+          <button id="retryBtn" class="btn ghost" title="Retry same combo">Retry</button>
+        </div>
+
+        <div class="feedback" id="feedback" role="status" aria-live="assertive">
+          <div class="fbBig" id="fbBig">Welcome — let's play.</div>
+          <div class="fbSmall" id="fbSmall">Every round shows a fresh 2-emoji combo. Comments will be bold, loud, and funny. Press Next for a new combo anytime.</div>
+        </div>
+
+        <div class="statusRow">
+          <div class="timer" id="timer">40s</div>
+          <div class="progress" aria-hidden="true"><div id="progressFill" class="progressFill"></div></div>
+        </div>
+
+        <div class="oceanFooter" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* Infinite 2-emoji Input Game with Home button and Hindi/English roasts
+   - 40s timer, infinite rounds
+   - user types/pastes exact 2-emoji combo (no spaces)
+   - large bold different comments for correct vs wrong
+   - Next -> new combo; Retry -> same combo + reset timer; Enter submits; Esc next
+*/
+
+const TIME_PER_Q = 40;
+const emojiDisplay = document.getElementById('emojiDisplay');
+const emojiInput = document.getElementById('emojiInput');
+const submitBtn = document.getElementById('submitBtn');
+const nextBtn = document.getElementById('nextBtn');
+const retryBtn = document.getElementById('retryBtn');
+const fbBig = document.getElementById('fbBig');
+const fbSmall = document.getElementById('fbSmall');
+const timerEl = document.getElementById('timer');
+const progressFill = document.getElementById('progressFill');
+
+let timer = TIME_PER_Q;
+let intervalId = null;
+let currentCombo = '';
+let lastAttempt = null;
+
+// helpful emoji bank — varied, story-related and general
+const baseEmojis = [
+  "🌊","🌸","🎬","🎧","🏃","🏸","🏊","🚇","🎂","🎁","✉️","🕵️",
+  "🤳","💨","👟","🌧️","🚣","🐠","🪞","✋","🍚","🍛","🎥","📸",
+  "💃","😅","😂","❤️","🔥","⭐","🌟","🧠","🤦","🥺","🧋","📱",
+  "🧾","🛵","🎉","🧴","🧼","🧹","🪂","🌅","🏛️","👁️","👠",
+  "🍦","🍿","🪄","🎭","📚","☕","🚲","🚗","🔑","🌙","☀️","🌳","🦚","🥲"
+];
+
+// Hindi/English wrong roasts (clear proper Hindi & Hinglish)
+const wrongRoasts = [
+  "Tum emojis yaad rakh lete ho, par mere birthday yaad nahi rehta — bura nahi lagta, bas roast karta hoon! 😂",
+  "Arre bhai, yeh answer toh bilkul out of bounds — shuttle ki tarah bahar chala gaya! 🏸",
+  "Galat! Lagta hai tumhara brain aaj metro mein atka hua hai, nikal ke aao. 🚇",
+  "Nope — tumne woh choose kiya jo sirf reel ka outtake banta. Mood kharab! 🎬",
+  "Arey moti, bhaag nahi sakti kya? Emoji bhi pakad nahi paayi! 💨",
+  "Tumne woh pick kiya jo mere fake-Reshma account se bhi zyada fake hai. Exposed! 🕵️",
+  "Wrong — jaise hum rain prank me confuse ho gaye the, waise hi yahan bhi.",
+  "Yeh choice dekh ke lagta hai tumne homework kisi aur se copy kiya. 🤦",
+  "Galat! Ab main tumhe ‘nikhab-tears’ wala drama yaad dilaunga (aur roast karunga). 😅",
+  "Aisa jawab? Tumhara answer mera pani-puri bhi nahi bacha payega. 🍽️",
+  "Nope — tumhari creativity chhutti pe chali gayi, wapas bulao use!",
+  "Galat! Yeh answer mirror maze jaisa hai — confusion ke alava kuch nahi. 🪞",
+  "Tumne yeh choose karke mujhko woh class wala din yaad dilaya — pura drama. 🎭",
+  "Wah bhai, kitni confidence se galat choose kiya — applaud for drama. 👏",
+  "Wrong — ab tumhara selfie album ek roast collection ban jayega. 🤳",
+  "Ye galti tumhari PB (personal best) list mein chali jaayegi — congratulations? 🏆",
+  "Arey, tumne yeh pick kiya to main class mein tumhare liye ek video bana dunga. (mazaak) 🎥",
+  "Galat — tumhari speed reply meri bike se bhi slow nikli. 🚲",
+  "Yeh answer toh uss plan jaisa hai jo hum cancel kar dete hain last minute. 😬",
+  "Nope — khud ko sambhalo, next try mein tum better ho sakte ho!"
+];
+
+// Hindi/English correct praises
+const correctPraises = [
+  "Bingo! Tumne pakad liya — bestie brain on fire! 🔥",
+  "Sahi pakda — tum toh pro nikle! High-five! ✋",
+  "Correct! Tumhara jawab bilkul on-point tha. 💯",
+  "Yes! Perfect match — aaj tumne mera prank-mind samajh liya. 😎",
+  "Nailed it! Ab ek chota sa celebration reel banta hai. 🎉",
+  "Wah bhai, perfect — tumhari memory 10/10. 🧠",
+  "Sahi! Tumhe ek virtual pani-puri milta hai (proud moment). 🍽️",
+  "Correct — ab main tumhara emoji champion bolunga. 🏅",
+  "Great! Tumne tricky combo bhi identify kar liya, respect. 🙌",
+  "Haan! Tumne magic kiya — ab next round ke liye ready ho jao."
+];
+
+// pick utility
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+// produce a 2-emoji combo (avoid identical pairs usually)
+function makeCombo(){
+  let a = pick(baseEmojis);
+  let b = pick(baseEmojis);
+  let tries = 0;
+  while(b === a && tries < 12){
+    b = pick(baseEmojis);
+    tries++;
+  }
+  return a + b;
+}
+
+// start a new round
+function newRound(){
+  clearInterval(intervalId);
+  currentCombo = makeCombo();
+  emojiDisplay.textContent = currentCombo;
+  emojiInput.value = '';
+  emojiInput.focus();
+  fbBig.style.color = "#07323d";
+  fbBig.textContent = "Match the exact 2-emoji combo";
+  fbSmall.textContent = "Type/paste the same two emojis (no spaces) and press Submit. You have 40s.";
+  timer = TIME_PER_Q;
+  updateTimerUI();
+  intervalId = setInterval(()=>{
+    timer--;
+    updateTimerUI();
+    if(timer <= 0){
+      clearInterval(intervalId);
+      handleTimeout();
+    }
+  },1000);
+}
+
+// retry same combo (reset timer)
+function retryRound(){
+  clearInterval(intervalId);
+  emojiInput.value = '';
+  emojiInput.focus();
+  fbBig.style.color = "#07323d";
+  fbBig.textContent = "Retry — same combo";
+  fbSmall.textContent = "Try again. Timer reset to 40s.";
+  timer = TIME_PER_Q;
+  updateTimerUI();
+  intervalId = setInterval(()=>{
+    timer--;
+    updateTimerUI();
+    if(timer <= 0){
+      clearInterval(intervalId);
+      handleTimeout();
+    }
+  },1000);
+}
+
+// handle submit
+function handleSubmit(){
+  clearInterval(intervalId);
+  const entered = normalizeInput(emojiInput.value);
+  if(entered === currentCombo){
+    fbBig.style.color = "#065a49";
+    fbBig.textContent = pick(correctPraises);
+    fbSmall.textContent = "Nice — press Next for a fresh combo or Retry to try again.";
+  } else {
+    fbBig.style.color = "#7a1028";
+    fbBig.textContent = pick(wrongRoasts);
+    fbSmall.textContent = `Wrong — expected ${currentCombo}. Press Retry or Next.`;
+  }
+}
+
+// handle timeout
+function handleTimeout(){
+  fbBig.style.color = "#7a1028";
+  fbBig.textContent = pick([
+    "Time's up — emoji bhaag liya! ⏳",
+    "40s finished — tum delay mein phas gaye. 😅",
+    "Timeout — par roast guaranteed. 😉"
+  ]);
+  fbSmall.textContent = `Expected ${currentCombo}. Press Retry to try again or Next for new combo.`;
+}
+
+// normalize (strip whitespace)
+function normalizeInput(s){
+  if(!s) return '';
+  return String(s).replace(/\s+/g,'').trim();
+}
+
+function updateTimerUI(){
+  timerEl.textContent = timer + "s";
+  const pct = Math.max(0, Math.min(100, Math.round((timer / TIME_PER_Q) * 100)));
+  progressFill.style.width = pct + "%";
+}
+
+// keyboard events
+emojiInput.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){ e.preventDefault(); handleSubmit(); }
+  if(e.key === 'Escape'){ e.preventDefault(); newRound(); }
+});
+
+// buttons
+submitBtn.addEventListener('click', handleSubmit);
+nextBtn.addEventListener('click', newRound);
+retryBtn.addEventListener('click', retryRound);
+
+// start
+newRound();
+
+</script>
+</body>
+</html>
