@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Poison or Safe — Bestie Edition</title>
+<style>
+  :root{
+    --ocean1:#e6f7ff; --ocean2:#d7f0ff; --accent:#ff6b99; --muted:#2d3940;
+    --card:#ffffff; --glass: rgba(255,255,255,0.7);
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,var(--ocean1),var(--ocean2));color:var(--muted);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:18px auto;padding:18px;}
+  .header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .logo{display:flex;align-items:center;gap:12px}
+  .logoBadge{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#ffbed6);color:white;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 8px 30px rgba(255,107,153,0.12)}
+  h1{margin:0;font-size:20px}
+  .subtitle{font-size:13px;color:#465a63}
+  .homeBtn{background:transparent;border:0;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.6);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+  .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 20px 50px rgba(20,30,40,0.06);border:1px solid rgba(0,0,0,0.04)}
+  .topRow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .status{display:flex;gap:12px;align-items:center}
+  .pill{background:linear-gradient(180deg,#fff,#fffafc);padding:8px 12px;border-radius:999px;border:1px solid rgba(0,0,0,0.04);font-weight:700}
+  .arena{min-height:300px;border-radius:12px;background:linear-gradient(180deg,#f8feff,#fff);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:18px;gap:12px}
+  .items{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;width:100%;padding:6px}
+  .itemBtn{min-width:86px;height:86px;border-radius:12px;border:0;background:linear-gradient(180deg,#fff,#fffafc);box-shadow:0 10px 30px rgba(30,40,50,0.04);font-size:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .itemBtn:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(30,40,50,0.08)}
+  .label{font-size:12px;color:#6b6b6b;margin-top:6px}
+  .msgBox{min-height:64px;padding:12px;border-radius:10px;background:var(--glass);display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700}
+  .controls{display:flex;gap:8px;align-items:center;margin-top:12px}
+  .small{font-size:13px;color:#586770}
+  .bigMsg{font-size:18px;color:#2b1020;font-weight:900}
+  .resultPanel{display:flex;flex-direction:column;gap:8px;align-items:center}
+  .againBtn{padding:10px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent),#ff9ec4);color:#fff;font-weight:800;cursor:pointer}
+  .ghost{background:transparent;border:0;color:var(--muted);cursor:pointer}
+  .footerNote{font-size:13px;color:#444;margin-top:10px;text-align:center}
+  /* animations */
+  .shake{animation:shakeIt .46s cubic-bezier(.36,.07,.19,.97) both}
+  @keyframes shakeIt{10%,90%{transform:translate3d(-1px,0,0)}20%,80%{transform:translate3d(2px,0,0)}30%,50%,70%{transform:translate3d(-4px,0,0)}40%,60%{transform:translate3d(4px,0,0)}}
+  .pulse{animation:pulse .9s ease-in-out infinite}
+  @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+  @media (max-width:640px){ .itemBtn{min-width:70px;height:70px;font-size:24px} .arena{padding:12px} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="logo">
+        <div class="logoBadge">UB</div>
+        <div>
+          <h1>Poison or Safe — Bestie Edition</h1>
+          <div class="subtitle">Pick safe things, avoid the poison. Inside-jokes guaranteed.</div>
+        </div>
+      </div>
+      <div>
+                  <a href="Home.html" id="homeLink" style="text-decoration:none"><button class="homeBtn" onclick="goHome()" >🏠 Home</button></a>
+      
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="topRow">
+        <div class="status">
+          <div class="pill">Round <span id="roundNum">1</span></div>
+          <div class="pill">Lives: <span id="lives">1</span></div>
+          <div class="pill">Picked: <span id="pickedCount">0</span>/<span id="totalSafe">0</span></div>
+        </div>
+
+      </div>
+
+      <div class="arena" id="arena">
+        <div class="msgBox" id="msgBox">Tap an item. Choose wisely — but mostly have fun 😈</div>
+        <div class="items" id="itemsContainer" aria-live="polite"></div>
+
+        <div class="controls">
+          <button class="againBtn" id="newRoundBtn">New Round</button>
+          <button class="ghost" id="shuffleBtn">🔀 Shuffle items</button>
+          <button class="ghost" id="hintBtn">💡 Hint (random)</button>
+        </div>
+
+        <div class="resultPanel" id="resultPanel" style="display:none">
+          <div class="bigMsg" id="resultTitle"></div>
+          <div class="small" id="resultSub"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="againBtn" id="playAgainBtn">Play Again</button>
+            <button class="ghost" id="continueBtn">Next Round</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footerNote">Made for you — uses emojis only. Keep the folder private if you want it personal 😉</div>
+    </div>
+  </div>
+
+<script>
+/* Poison or Safe — Bestie Edition
+   - Each round: a set of 6-7 emoji items, exactly one is poison (random).
+   - If player picks safe -> item removed; continue until all safe picked -> WIN
+   - If picks poison -> LOSE; show roast lines.
+   - Endless: after win/lose, allow Next Round or Play Again (re-randomize).
+   - Lots of funny comments (safe, poison, win) with inside-jokes from user's story.
+*/
+
+// ---------- emoji sets (it will randomly pick a set each round) ----------
+const EMOJI_SETS = [
+  ["🍎","🍌","🍇","🍒","🍍","🍉","🍑"], // fruits
+  ["🍫","🍬","🍪","🧁","🍩","🍯","🍭"], // sweets
+  ["⚽","🏀","🎲","🎯","🪀","🧸","🎮"], // toys/games
+  ["🥕","🌽","🥔","🍅","🥦","🥒","🧄"], // veg
+  ["👟","🧢","👜","🕶️","🧣","👗","👞"], // accessories
+  ["🐶","🐱","🐦","🐰","🦊","🐯","🐨"], // animals
+  ["🏖️","🏞️","🏛️","🕌","🏟️","🏰","🗼"], // places (nostalgia)
+  ["📱","💻","🎧","📷","⌚","🔋","🔌"], // gadgets
+  ["🧠","❤️","😂","😢","😡","🤗","😴"], // emotions (fun)
+  ["🧃","🥤","☕","🍵","🧋","🥛","🧉"] // drinks
+];
+
+// ---------- big comment banks (safe, poison, win) ----------
+/* NOTE: These are long; each array intentionally big and referencing your stories: Cubbon Park, VITM, nikhaab, Reshma prank, wrong-answers, reels, pani-puri, running, hair-pull, PG, etc. */
+
+const SAFE_COMMENTS = [
+"Oohoo — safe! Like our Cubbon Park day — another memory saved.",
+"Safe! Tumhara luck pizza-sized aaj.",
+"Nice pick! Ab tumhe ek reel idea mil gaya, shoot karenge.",
+"Safe choice — kuch to sahi kiya aaj, varna wrong-answer DNA chalta.",
+"Bravo! Safe got removed — ab ek pani-puri treat plan karo.",
+"Safe! Tumhari speed to slow, but your choices are sharp.",
+"Nice — jaise VITM ke mirror maze se bahar nikalna, smooth!",
+"Safe — ab tum thoda aur brave ho, come on.",
+"Good pick — Reshma prank se bach gayi? Nah, bas is item se bach gayi.",
+"Safe! Trophy for not picking poison (digital trophy pending).",
+"Yeh laga safe — bilkul us din ke 3D show jaisa surprise.",
+"Safe — ab thoda confidence badhao, ek aur choose karo.",
+"Nice — tum jab choose karti ho, game roshni se jagmagata hai.",
+"Safe — will note this in your assignment memory (jk).",
+"Oohoo — safe! Moti nahi ho, just cute courage!",
+"Safe — you’re earning those future apology cookies.",
+"Safe! Aage badho, combo chal raha hai.",
+"Good — ab main comment likhunga: 'She chose safe like a pro'.",
+"Safe — kamal, tumne mera roast plan thoda late kar diya.",
+"Nice pick — ab tumhe ek mini-challenge mil raha hai: choose again!",
+"Safe — ab meri next roast thoda soft rahegi (bas thoda).",
+"Safe — tumne mera 'catch me' reel idea spoil nahi kiya.",
+"Brilliant — safe! Ab 'I will not text first' rule break kar do ek baar.",
+"Safe — jaise nikhaab waali incident me tum strong rahi, same energy.",
+"Safe — ab tumhara combo badh raha hai, keep it up!",
+"Safe — tumne ek item save kiya, aur mera dil jeet liya.",
+"Good job — ab ek aur choose karo, show me the moves.",
+"Safe — ab main tumhe ek 'winning smile' emoji bhej raha hoon (mental).",
+"Nice, safe! Jaise humne Cubbon Park me photo liya tha, perfect click.",
+"Safe — teri speed slow ho, par choice deadly accurate.",
+"Safe — ab tu ek reel recreation plan bolegi? Yes please.",
+"Safe — ab mera next roast delayed by 1 minute (mercy).",
+"Safe — perfect, ab ek aur choose kar, champion.",
+"Nice — safe, ab tum ek 'I won' small victory dance karna.",
+"Safe! Tumhari choices me thoda drama hai, but in a good way.",
+"Safe — ab tum chalo, aur select karo with swag.",
+"Safe — jaise humne aquarium dekha tha, calm & safe.",
+"Nice — safe choice; tumne meri book cover ka idea steal nahi kiya (jk).",
+"Safe — ab tumhe ek 'safe' badge milna chahiye, virtual pin.",
+"Safe — ab tum mera weekend partner ho for reels (deal?).",
+"Safe pick — ab combo bar increase hua, cheers.",
+"Safe — tumhara 'I will think' mode me improvement aaya (lol).",
+"Safe — ab tum family ko bolo: 'I’m good at choices' (fake confidence).",
+"Safe — genial pick, now choose again like a pro.",
+"Safe — festival card level approval: yes.",
+"Safe — ab tumhari roast meter cool down hogi 30 sec.",
+"Safe — tumhari kitabi knowledge ka proof dikh raha hai (fun).",
+"Safe — jaise resort trip me umbrella safe tha, ye bhi safe.",
+"Safe — ab tum ek small surprise jot karna, I like curiosity.",
+"Safe — combo continues, you're doing great!",
+"Safe — tumhare liye cute doodle ready, request bhejo.",
+"Safe — ab tum rehearsal karo for the 'caught' dance (not yet).",
+"Safe — nice, ab ek aur choose karo and stun me!",
+"Safe! Tumhari victory playlist ready kar raha hoon (inside-joke).",
+"Safe — ab tum meri chai partner ho in next meet (obligation).",
+"Safe — I’ll add this choice to the memory jar (sweet!).",
+"Safe — good, ab tum ek present idea list compile karo (fun).",
+"Safe — tumne ek item khatam kiya, mission moving on!",
+"Safe — skill unlocked: 'Reshma-proof choice'!",
+"Safe — ab tumne mujhse ek promise le liya: future prank milna.",
+"Safe — okay, ek aur pick and make me proud.",
+"Safe — tumhari choice me ek nostalgic feel hai, like Vidhan Soudha click.",
+"Safe — ab tum mujhe ek sweet voice note bhejogi (deal).",
+"Safe — superb, ab calm down and pick next.",
+"Safe — tumhari choice se game ka mood happy ho gaya.",
+"Safe — nice pick, lagta hai tum reels me top hogi.",
+"Safe — tumhari selection strategy 10/10, keep going."
+];
+
+const POISON_COMMENTS = [
+"Areee! Poison — pakdi gayi! 😂 Ab roast time.",
+"Poison! Bohot badhiya — ab tum bahut dramatic apology karna padega.",
+"Oops — tumne poison choose kiya, ab tum out ho! (RIP snacks).",
+"Poison! Ab main tere upar pura story likh dunga: 'She chose poison'.",
+"Poison — ab main unholy roast zurur bhejunga, brace yourself.",
+"Arre! Poison — ab tu ek 'I was scared' voice note bhej (dramatic).",
+"Poison! Ab tu mujhe 10 pani-puri offer karegi? Nah, kidding. (Maybe).",
+"Poison selected — ab mai record pe note kar raha hoon: 'She lost, lol'.",
+"Poison! Ab tu theatre drama shuru kar, 'I didn't know!' — I loved it.",
+"Poison — ab tu meri 'caught you' reel me cameo kar jaogi, congrats.",
+"Poison! Ab tu 'I forgot' ka anthem gaana padega, loud voice required.",
+"Poison chosen — ab tu ek apology cookie bake karegi (taste test by me).",
+"Arre! Poison — ab tu ek heartfelt letter likhke de, I will keep it.",
+"Poison! Ab tumhe 'moti' jokes ka extended pack mil gaya, enjoy!",
+"Poison — ab tu mujhe ek sad reel bhejo (fake sad allowed).",
+"Poison! Abhi to mazaa shuru hua hai — roasting level high!",
+"Poison selected — tumhari wrong-answers energy yahi se aayi lagti hai.",
+"Poison! Ab tu 'I was near your house' wala drama karogi next (classic).",
+"Poison — ab kuch nahi bacha, bas roasting and hugs after. 😅",
+"Poison! Ab tu apna apology dance perform kar, 10 seconds.",
+"Poison — ab tumhare family group me 'she lost' messages bhej raha hoon (jk).",
+"Poison! Ab tu ek 'I swear I was in a mood' speech de, emotional mode.",
+"Poison chosen — ab tu mujhe ek note bhej: 'Forgive me bestie' (cute).",
+"Poison! Ab tumse ek secret le lu? Nah, roast pehle.",
+"Poison! Ab humari next trip me tum treat karogi — penalty clause.",
+"Poison chosen — ab tum film kar do: 'The Escape that failed'.",
+"Poison! Ab tumhe ek 'I will not do again' postcard bhejni hogi.",
+"Poison — ab tumhari nikhab story ko ek twist milega, drama loaded.",
+"Poison! Ab main tumari chasing skills ko meme bana dunga.",
+"Poison selected — ab tum mujhe ek heart-melting message bhejo (immediately).",
+"Poison! Ab tu apna apology cookie bana ke bhejna (shipping on you).",
+"Poison — ab sab log bolege: 'She chose poison' — trending now.",
+"Poison! Ab tu mujhse promise leo: next round better try.",
+"Poison — ab tumme guilt sparkle aa gaya, wear it proudly.",
+"Poison! Ab tu mujhse 'I'm sorry' repeat karna 3 times, voice note please.",
+"Poison — ab tumhe ek 'caught' certificate mil raha hai (paperwork).",
+"Poison! Ab main tumhe ek funny nickname dedunga for the day, ready?",
+"Poison chosen — ab tum mujhe ek sweet voice note bhejo raat ko.",
+"Poison! Ab tu ek mini-song ga ke bhej, dramatic style.",
+"Poison — ab main tumhare liye ek roast montage banaunga.",
+"Poison! Ab tu ek 'I owe you' card bana ke de, redeemable for snacks.",
+"Poison chosen — ab tumhari chase saga legendary ban gayi hai.",
+"Poison! Ab tu ek short apology video bhej, filter allowed.",
+"Poison — ab tumhara 'I will think' rule famous ho gaya, RIP.",
+"Poison! Ab tumhe ek 'escape fail' badge milna chahiye, proudly worn.",
+"Poison chosen — ab tumhare liye special roasting playlist banayi gayi hai.",
+"Poison! Ab tumhe ek tiny surprise laane ka order dena padega, haha.",
+"Poison — ab tumhe meri next roast milti hai: 'She forgot my birthday once'.",
+"Poison! Ab tu 'I was near' prank repeat karegi in shame, love u.",
+"Poison — ab tu selfie bhej ke sorry bol, public humiliation (cute).",
+"Poison! Ab tiwari family story ka add-on: 'The round she lost'.",
+"Poison chosen — ab mera next reel title: 'When bestie picks poison'.",
+"Poison! Ab tu mujhe ek handwritten note de (not negotiable).",
+"Poison — ab tu ek 'I will not run' promise kar, sign with pinky.",
+"Poison! Ab tumhare liye special roast: 'you are the wrong-answers queen'.",
+"Poison chosen — ab tu mera chai partner nahi bano (joke), but maybe.",
+"Poison! Ab tu 'I will not forget' bolke repeat karo, emotional.",
+"Poison — ab tu ek dramatic slow-mo apology bhejo on reels.",
+"Poison! Ab tu ek 'I forgot your bday' ka clapback expect karogi.",
+"Poison chosen — ab hum sab HAHAs deke tumhe welcome karenge back.",
+"Poison! Ab tu ek silly penalty complete kar, record it and send.",
+"Poison — ab tu meri 'caught you' gallery me guest hogi (for memes).",
+"Poison! Ab tu ek 'I lost' sticker ghar pe chipka do, proud loss.",
+"Poison chosen — ab tu meri next prank partner banegi (guilty!).",
+"Poison! Ab tu ek apology cookie bake karo and deliver by hug.",
+"Poison — ab tu ek tiny tear emoji bhejo, I will accept it.",
+"Poison! Ab tu 'I forgot' ka chant karo 3 times, for catharsis."
+];
+
+const WIN_COMMENTS = [
+"Congratulations — you cleared all safe items! 🎉 Bestie champion!",
+"Win! Tum jeet gayi — full pani-puri treat promised (in spirit).",
+"You won! Ab tum meri reel co-star ho forever (title reserved).",
+"Victory! Ab tumhara 'safe choices' certificate milta hai (virtual).",
+"Winner alert — tumne poison avoid kiya like a pro.",
+"Win — ab tu mujhe ek handwritten letter de (I collect them).",
+"Champion! Ab hum dono ek nostalgic trip plan karte hain.",
+"Win! Tumne game me sab safe liya — heart-touching moment.",
+"Yess! Tum jeet gayi — ab roasts temporarily paused.",
+"Win — ab main tumhe ek funny nickname doonga (celebration!).",
+"Victory! Tumhari choice skills VITM-level accurate.",
+"You won! Ab ek cute voice note aur ek hug required.",
+"Big win — ab tum meri 'pasandida aurat' certificate receive karo.",
+"Win! Ab tum mujhe ek 'we did it' selfie bhejogi, right?",
+"Champion — ab tu meri playlist me winner song add karogi.",
+"You won! Ab tumhe special roast-free day (one day only).",
+"Victory — ab tum meri weekend plans co-host banogi.",
+"Win! Tumhari choices me thoda magic hai, keep it alive.",
+"Winner — ab ek small gift (mental) for you: my praise.",
+"You won! Ab tumhari story jar me ek sticky note add karta hoon.",
+"Win — ab tumhara combo record saved to history.",
+"Yess — victory dance time (send voice note!).",
+"Win! Tumne mera challenge clear kiya, proud of you.",
+"Champion — ab tum meri gallery me bestie of the month banogi.",
+"You won! Ab tum mujhe ek special recipe share karogi (pls).",
+"Victory — ab hum ek new reel concept banayenge, celebration!",
+"Win! Tumne ek level complete kiya: 'No poison today'.",
+"Yess — you conquered the set, bravo!",
+"Win! Ab tumhara favorite snack on me next time (promise).",
+"Champion — ab tumhari 'I will not text first' rule optional for today.",
+"You won! Ab tu mera travel buddy next weekend (hypothetical).",
+"Victory! Ab tumhe ek 'bestie wins' sticker bhejta hoon (digital).",
+"Win! Tumhari memory jar me ek aur note add hua: 'Poison avoided'.",
+"Champion — ab tumhara roast protection active for 10 mins.",
+"You won! Ab ek little poem for you: 'She picked safe, we cheered'.",
+"Victory — ab tumhari nikhab replacement plan khatam, all good.",
+"Win! Ab tum ek mini gift (virtual) receive karogi: my respect.",
+"Champion — ab tumhara name in my 'Unbreakable' book shining.",
+"You won! Ab tumhara 'I forgot' incidents reduced by 1.",
+"Victory! Ab tumhara reel with 'victory' caption viral ho jaayega.",
+"Win! Ab ek cute doodle kar ke bhejta hoon as celebration.",
+"Champion — ab tum meri chai partner for real, deal?",
+"You won! Ab tumhare liye ek special happy message from me.",
+"Victory! Ab hum dono ek photo print karenge (memory time).",
+"Win! Tumne sab safe pick kiya — ab hum ek secret handshake design karte.",
+"Champion — ab tu mera 'always there' partner confirmed.",
+"You won! Ab tu ek small surprise plan karegi next meet.",
+"Victory — ab humari dosti aur strong ho gayi, as expected."
+];
+
+// ensure arrays long enough by repeating safe/poison/win with slight variations if needed
+function expandTo(n, arr){
+  while(arr.length < n){
+    arr.push(arr[Math.floor(Math.random()*arr.length)]);
+  }
+}
+expandTo(120, SAFE_COMMENTS);
+expandTo(140, POISON_COMMENTS);
+expandTo(80, WIN_COMMENTS);
+
+// ---------- game state ----------
+let currentSet = [];
+let poisonIndex = -1;
+let totalSafe = 0;
+let pickedCount = 0;
+let round = 0;
+
+// DOM
+const itemsContainer = document.getElementById('itemsContainer');
+const msgBox = document.getElementById('msgBox');
+const roundNum = document.getElementById('roundNum');
+const livesEl = document.getElementById('lives');
+const pickedCountEl = document.getElementById('pickedCount');
+const totalSafeEl = document.getElementById('totalSafe');
+const newRoundBtn = document.getElementById('newRoundBtn');
+const shuffleBtn = document.getElementById('shuffleBtn');
+const hintBtn = document.getElementById('hintBtn');
+const resultPanel = document.getElementById('resultPanel');
+const resultTitle = document.getElementById('resultTitle');
+const resultSub = document.getElementById('resultSub');
+const playAgainBtn = document.getElementById('playAgainBtn');
+const continueBtn = document.getElementById('continueBtn');
+
+// ---------- helpers ----------
+function randomInt(max){ return Math.floor(Math.random()*max); }
+function pick(arr){ return arr[randomInt(arr.length)]; }
+function say(msg, cls){ // cls optional for emphasis
+  msgBox.textContent = msg;
+  msgBox.classList.remove('shake'); void msgBox.offsetWidth;
+  if(cls==='shake'){ msgBox.classList.add('shake'); }
+}
+
+// spawn a new round
+function newRound(){
+  resultPanel.style.display='none';
+  itemsContainer.innerHTML='';
+  round++;
+  roundNum.textContent = round;
+  // choose a random emoji set
+  const set = JSON.parse(JSON.stringify(pick(EMOJI_SETS)));
+  // shuffle set and take 6 or 7 items randomly
+  shuffleArray(set);
+  const count = Math.random() < 0.45 ? 6 : 7;
+  currentSet = set.slice(0, count);
+  // choose poison random index
+  poisonIndex = randomInt(currentSet.length);
+  totalSafe = currentSet.length - 1;
+  pickedCount = 0;
+  pickedCountEl.textContent = pickedCount;
+  totalSafeEl.textContent = totalSafe;
+  livesEl.textContent = 1;
+  // render buttons
+  currentSet.forEach((emoji, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'itemBtn';
+    btn.dataset.idx = idx;
+    btn.innerHTML = `<div class="emoji">${emoji}</div><div class="label">Pick</div>`;
+    btn.addEventListener('click', ()=> onPick(idx, btn));
+    itemsContainer.appendChild(btn);
+  });
+  say("Tap an item — one is poison. If you clear all safe ones, you win!", ''); 
+}
+
+// shuffle in-place
+function shuffleArray(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+}
+
+// pick handler
+function onPick(index, btn){
+  // disable button to prevent double click before UI updates
+  btn.disabled = true;
+  // if player clicked the poison
+  if(index === poisonIndex){
+    // LOSE
+    const line = pick(POISON_COMMENTS);
+    showLose(line, currentSet[index]);
+    // mark chosen with a red shake
+    btn.classList.add('shake');
+    btn.style.opacity = 0.5;
+    // visually reveal poison to user
+    setTimeout(()=> btn.innerHTML = `<div style="font-size:36px">☠️</div><div class="label">Poison</div>`, 120);
+    return;
+  } else {
+    // SAFE: remove this item and continue
+    pickedCount++;
+    pickedCountEl.textContent = pickedCount;
+    const safeLine = pick(SAFE_COMMENTS);
+    // reveal safe visually
+    btn.innerHTML = `<div style="font-size:32px">✅</div><div class="label">Safe</div>`;
+    // fade out after short delay
+    setTimeout(()=> {
+      btn.style.transition='opacity .45s, transform .45s';
+      btn.style.opacity=0.18;
+      btn.style.transform='scale(.94)';
+      btn.disabled = true;
+    }, 260);
+    // message to user
+    say(safeLine);
+    // if all safe picked -> WIN
+    if(pickedCount >= totalSafe){
+      setTimeout(()=> showWin(pick(WIN_COMMENTS)), 420);
+    }
+  }
+}
+
+// show lose
+function showLose(line, emoji){
+  resultPanel.style.display='flex';
+  resultTitle.textContent = "Oh no — Poison!";
+  resultSub.textContent = line;
+  // highlight poison item visually by revealing all items and showing poison icon
+  Array.from(itemsContainer.children).forEach((b, i)=>{
+    b.disabled = true;
+    if(i === poisonIndex){
+      b.innerHTML = `<div style="font-size:36px">☠️</div><div class="label">Poison</div>`;
+      b.style.opacity = 1;
+      b.style.boxShadow = '0 20px 40px rgba(255,80,100,0.12)';
+    } else {
+      // show whether safe or not
+      if(b.innerHTML.includes('✅')) { /* already revealed safe */ }
+      else b.style.opacity = 0.18;
+    }
+  });
+  // add playful sound using WebAudio (soft)
+  playMiniTone('bad');
+  // encourage replay
+  say("You stepped on the poison — but hey, play again and roast me back!", 'shake');
+}
+
+// show win
+function showWin(line){
+  resultPanel.style.display='flex';
+  resultTitle.textContent = "🎉 You cleared the round!";
+  resultSub.textContent = line;
+  // reveal celebratory visuals
+  Array.from(itemsContainer.children).forEach((b)=>{
+    b.disabled = true;
+    b.style.opacity = 0.28;
+  });
+  playMiniTone('good');
+  say("YOU WON — that was ace! Try another round to keep the chaos going.", '');
+}
+
+// small audio cues
+let audioCtx = null;
+function ensureAudio(){ if(audioCtx) return; try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audioCtx=null; }}
+function playMiniTone(kind){
+  ensureAudio(); if(!audioCtx) return;
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  if(kind==='good'){ o.frequency.value = 760; o.type='sine'; g.gain.value = 0.003; }
+  else { o.frequency.value = 380; o.type='square'; g.gain.value = 0.004; }
+  o.start(); setTimeout(()=>{ o.stop(); }, 220 + Math.random()*160);
+}
+
+// controls
+newRoundBtn.addEventListener('click', ()=> newRound());
+shuffleBtn.addEventListener('click', ()=> {
+  // collect remaining emojis, reshuffle positions, keep poison index tied to emoji value
+  const remaining = currentSet.slice();
+  shuffleArray(remaining);
+  // find new poisonIndex based on same poison emoji
+  const poisonEmoji = currentSet[poisonIndex];
+  currentSet = remaining;
+  poisonIndex = currentSet.indexOf(poisonEmoji);
+  // re-render with current picks preserved (buttons reset)
+  itemsContainer.innerHTML='';
+  currentSet.forEach((e, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'itemBtn';
+    btn.dataset.idx = idx;
+    btn.innerHTML = `<div class="emoji">${e}</div><div class="label">Pick</div>`;
+    btn.addEventListener('click', ()=> onPick(idx, btn));
+    itemsContainer.appendChild(btn);
+  });
+  say("Shuffled! Poison moved — good luck 👀", 'shake');
+});
+
+hintBtn.addEventListener('click', ()=> {
+  // gentle hint: randomly (50%) say a wrong-sounding hint, or a playful nudge
+  if(Math.random() < 0.5){
+    say(pick([
+      "HINT: The poison loves hiding near the snack emoji... or maybe not 😏",
+      "HINT: Trust your vibes, not your eyes. (vibes = 70% reliable)",
+      "HINT: If you remember the VITM mirror maze — choose opposite side!",
+      "HINT: The poison sometimes pretends to be the tastiest item."
+    ]), '');
+  } else {
+    say(pick([
+      "No real hint — I prefer chaos. Pick bravely!",
+      "Random hint: choose the item that would never forget my birthday.",
+      "Tiny hint: the poison hates pani-puri — maybe avoid snacks?",
+      "Tiny hint: trust the item that looks least suspicious."
+    ]), '');
+  }
+});
+
+// play again and continue buttons
+playAgainBtn.addEventListener('click', ()=> {
+  resultPanel.style.display='none';
+  round=0;
+  newRound();
+});
+continueBtn.addEventListener('click', ()=> {
+  resultPanel.style.display='none';
+  newRound();
+});
+
+
+// init
+newRound();
+
+// accessibility: keyboard numbers to pick (1..7)
+window.addEventListener('keydown', (e)=>{
+  if(document.activeElement.tagName==='INPUT' || document.activeElement.tagName==='TEXTAREA') return;
+  // digits 1..7
+  if(e.key >= '1' && e.key <= '7'){
+    const idx = parseInt(e.key)-1;
+    const btn = itemsContainer.querySelector(`button[data-idx="${idx}"]`);
+    if(btn && !btn.disabled) btn.click();
+  }
+});
+</script>
+</body>
+</html>
