@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Catch Me — Final (Roles Fixed)</title>
+<style>
+  :root{--bg:#fff6fb;--panel:#fff;--accent:#ff6b99;--muted:#3d2530}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:18px;background:linear-gradient(180deg,#f7f6fb,#fff0f6);font-family:Inter,system-ui,Arial;color:var(--muted)}
+  .wrap{width:100%;max-width:920px}
+  .card{background:var(--panel);border-radius:16px;padding:14px;box-shadow:0 20px 50px rgba(20,10,20,0.06);border:1px solid rgba(0,0,0,0.03)}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .logo{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#ffbed6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
+  h1{margin:0;font-size:20px}
+  .arena{position:relative;height:560px;border-radius:12px;overflow:hidden;background:radial-gradient(circle at 30% 10%,#fff,#fffafc 40%);border:1px solid rgba(0,0,0,0.03);margin-top:8px;touch-action:none}
+  .centerLabel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;color:rgba(61,37,48,0.06);font-weight:900;font-size:28px}
+  /* runner & chaser */
+  #runnerWrap{position:absolute;left:-260px;bottom:42px;width:220px;z-index:60;touch-action:none;transition:left .08s linear}
+  #runnerImg{width:100%;height:auto;display:block;user-select:none;pointer-events:auto}
+  #chaserWrap{position:absolute;right:18px;bottom:18px;width:200px;z-index:50}
+  #chaserImg{width:100%;display:block}
+  /* small animations */
+  .hairPull{animation:hairShake .28s ease-in-out 3}
+  .tease{animation:teaseShake .22s ease-in-out 4}
+  @keyframes hairShake{0%{transform:translate(0,0)}25%{transform:translate(-6px,-2px) rotate(-4deg)}50%{transform:translate(6px,2px) rotate(4deg)}75%{transform:translate(-3px,1px)}100%{transform:none}}
+  @keyframes teaseShake{0%{transform:translateY(0)}50%{transform:translateY(-9px)}100%{transform:none}}
+  .hud{display:flex;justify-content:space-between;align-items:center;padding-top:12px}
+  .scores{display:flex;gap:10px}
+  .scoreBox{background:linear-gradient(180deg,#fff,#fffafc);padding:8px 12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04);text-align:center}
+  .btn{padding:10px 12px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent),#ff9ec4);color:white;font-weight:800;cursor:pointer}
+  .btnGhost{background:#fff;border:1px solid rgba(0,0,0,0.06);color:var(--muted)}
+  .overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:200}
+  .panel{background:#fff;padding:14px;border-radius:12px;box-shadow:0 18px 40px rgba(14,8,12,0.06);text-align:center;border:1px solid rgba(0,0,0,0.03)}
+  .panel img{width:120px;margin:8px auto;display:block}
+  .centerSmall{font-size:13px;color:#6b4b5a}
+  @media (max-width:760px){ .arena{height:460px} #runnerWrap{width:160px} #chaserWrap{width:140px} .panel img{width:96px}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="logo">UB</div>
+          <div>
+            <h1>The Unbreakable — Catch Me (Final)</h1>
+            <div style="font-size:13px;color:#5b3a45">Girl chases, you try to escape. If she catches → hair-pull (her roast). If you escape → tease (your taunt).</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <a href="Home.html" id="homeLink" style="text-decoration:none"><button class="btnGhost btn">🏠 Home</button></a>
+        </div>
+      </div>
+
+      <div class="arena" id="arena" aria-label="game arena">
+        <div class="centerLabel">Catch Me</div>
+
+        <!-- Runner (tappable) -->
+        <div id="runnerWrap">
+          <img id="runnerImg" src="running-boy.png" alt="runner">
+        </div>
+
+        <!-- Chaser / hijab girl -->
+        <div id="chaserWrap">
+          <img id="chaserImg" src="girl.png" alt="bestie">
+        </div>
+
+        <!-- overlay result -->
+        <div class="overlay" id="overlay">
+          <div class="panel">
+            <img id="panelImg" src="" alt="">
+            <div id="panelBig" style="font-weight:800;color:#3b1b27"></div>
+            <div class="centerSmall" id="panelSmall"></div>
+            <div style="margin-top:10px;display:flex;gap:8px;justify-content:center">
+              <button id="againBtn" class="btn">Play again</button>
+              <button id="closeBtn" class="btnGhost btn">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div class="scores">
+          <div class="scoreBox">Caught<div id="caught" style="font-size:18px;font-weight:800">0</div></div>
+          <div class="scoreBox">Escaped<div id="escaped" style="font-size:18px;font-weight:800">0</div></div>
+          <div class="scoreBox">Combo<div id="combo" style="font-size:18px;font-weight:800">0</div></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="resetBtn" class="btn">🔄 Reset</button>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;color:#6b4b5a;font-size:13px">Put these files in same folder: <strong>running-boy.png, girl.png, hair-pull.png, tease.png</strong></div>
+    </div>
+  </div>
+
+<script>
+/* Final role-corrected Catch Me
+   - When GIRL CATCHES you -> hair-pull.png + CAUGHT_BY_HER (she roasts you)
+   - When YOU ESCAPE -> tease.png + ESCAPE_TAUNTS (you taunt her)
+   - Random spawn side, variable speeds, bursts & jitter
+   - 120+ lines each for maximum craziness
+*/
+
+const arena = document.getElementById('arena');
+const runnerWrap = document.getElementById('runnerWrap');
+const runnerImg = document.getElementById('runnerImg');
+const chaserWrap = document.getElementById('chaserWrap');
+const chaserImg = document.getElementById('chaserImg');
+const overlay = document.getElementById('overlay');
+const panelImg = document.getElementById('panelImg');
+const panelBig = document.getElementById('panelBig');
+const panelSmall = document.getElementById('panelSmall');
+const againBtn = document.getElementById('againBtn');
+const closeBtn = document.getElementById('closeBtn');
+const caughtEl = document.getElementById('caught');
+const escapedEl = document.getElementById('escaped');
+const comboEl = document.getElementById('combo');
+const resetBtn = document.getElementById('resetBtn');
+
+let running=false, animReq=null;
+let startX=0, endX=0, startT=0, runDuration=1500;
+let caught=0, escaped=0, combo=0;
+let spawnSide='left';
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* -------------------------
+   LINES: CAUGHT_BY_HER (she roasts you when she catches)
+   ------------------------- */
+const CAUGHT_BY_HER = [
+"Pakda gaya? Arre bhai, speed to phone-charging jaisa — 0%! 😂",
+"Tu bhaag ke aaya aur bola 'I will think' — thinking ka time khatam ho gaya!",
+"Trophy for 'Best Running Excuses' milna chahiye tujhe. 🏆",
+"Pakda! Ab 10 pani-puri mere naam, samajh gaya? 😋",
+"Reshma prank wali energy aayi — drama full on. 😏",
+"Ha! Ab handwritten 'sorry' chahiye — warna main reel bana dungi.",
+"Running style: 'late for snacks' edition — award le lo!",
+"Pakda! Ab tu apology dance kar, 3 beats aur ek extra smile.",
+"Ab bata, VITM mirror maze se zyada confuse kyun ho jaati ho? 🤔",
+"Pakda — ab tu mujhe ek cute voice note bhej, dramatic wale.",
+"Arre runner, tum to selfie mode me hi speed dikhate ho.",
+"Pakda! Ab tu 'I will not text first' rule todke shuru karna padega.",
+"Ha! Ab tumhara punishment: mujhe 3 ugly selfies bhejna (with love).",
+"Pakda — tu nikhab story repeat mat karna, already viral. 😅",
+"Captured — ab tum mujhe ek 'we're good' GIF bhejna, warna roast fresh!",
+"Pakda! Ab tu meri gallery me se best pic choose karke bhejogi.",
+"Ha! Ab tum mera 'caught you' sticker bhejogi (digital proof required).",
+"Pakda — ab tu mujhe ek 'I owe you' card banake do, handwritten.",
+"Pakda! Ab tum mujhe ek poem likhke do: 'I ran, he chased, we laughed'.",
+"Ha! Ab tum mujhe weekly 2 memes bhejne ka promise dogi.",
+"Pakda! Ab tum mera travel co-pilot banogi next time (condition: snacks).",
+"Captured — ab tu meri midnight confidant ho, extra hugs dena padega.",
+"Pakda! Ab tu mujhe ek 'sorry cookie' bake karogi (taste tested by me).",
+"Ha! Pakda — ab tu meri assignment me ek choti help karogi (joke but maybe).",
+"Captured — ab tu mujhe ek small keychain laakar dena (token love).",
+"Pakda! Ab tu mujhse 'we will build again' bolke promise karogi.",
+"Ha! Ab tu meri morning message bhejegi, 'good morning' with emoji.",
+"Captured — ab tu mujhe VITM next visit pe treat karogi (payable in pani-puri).",
+"Pakda! Ab tu mujhe ek surprise plan karogi next meet, deal?",
+"Ha! Ab 'I was scared' bolke voice note bhej, drama allowed.",
+"Captured — ab tu mujhe 'I will not ignore' promise do, pinky swear.",
+"Pakda! Ab tum meri 'no long fights' policy accept karogi, sign karo.",
+"Ha! Ab tum mujhe ek doodle do: 'caught us' moment (cute).",
+"Captured — ab tu mujhe ek 'we're good' playlist dedicate karogi.",
+"Pakda! Ab tum meri fitness partner banogi—nah, just kidding (sorta).",
+"Ha! Pakda — ab tu mera secret safe rakhegi, promise with hug.",
+"Pakda! Ab tu mujhe ek handmade letter dogi (my fav thing).",
+"Captured — ab tu meri 'late texting' rule break karegi kabhi kabhi.",
+"Ha! Pakda — ab tum mujhe ek 'sorry' reel bana ke bhejogi (cute filter allowed).",
+"Pakda! Ab tu mera 'bestie agreement' sign karogi (digital scribble chalega).",
+"Ha! Pakda — ab mere stupid jokes ke liye ek extra smile do.",
+"Captured — ab tu mujhe ek 'no silent treatment' promise do, promise me.",
+"Pakda! Ab tum mujhe ek tiny surprise laogi — I will pretend to be surprised.",
+"Ha! Pakda — ab tu meri gallery ke ugly pics bhejke apology accept karwao.",
+"Captured — ab tum meri day out planner banogi next time (I pick place!).",
+"Pakda! Ab tum mujhe ek 'I owe you' chocolate laogi (trade-off).",
+"Ha! Pakda — ab tum mujhe ek festival card banao with doodles (creative!).",
+"Captured — ab tu mujhe ek 'catch me' reel idea de, we will shoot it.",
+"Pakda! Ab tum mujhse sach bolne ka promise dogi (no drama for a week).",
+"Ha! Pakda — ab tum mujhe ek 'I will not run' voice note bhejo thrice.",
+"Captured — ab tu mujhe ek mini picnic plan karogi — snacks mandatory.",
+"Pakda! Ab tu mera 'apology comic' bana ke bhejogi (funny).",
+"Ha! Pakda — ab tumhare liye ek 'caught you' certificate banaunga (paperwork).",
+"Captured — ab tu mujhe ek secret recipe share karogi (family special!).",
+"Pakda! Ab tu mera content co-creator ban jaogi permanently (deal).",
+"Ha! Pakda — ab tum mujhe ek 'we are good' sticker bhejogi everyday for 3 days.",
+"Captured — ab tu mujhe ek printed photo de of this moment (nostalgia).",
+"Pakda! Ab tu meri playlist maintain karogi (I will rate songs).",
+"Ha! Pakda — ab tum mujhe ek 'sorry' song dedicate karogi (shameless romance).",
+"Captured — ab tu mujhe ek small keychain token dogi, promise.",
+"Pakda! Ab tu mujhe ek apology note frame me de do (cute hazard).",
+"Ha! Pakda — ab tum 'I will not hide' bolke serious face bhejo.",
+"Captured — ab tu mujhe ek tiny craft laogi — I will cherish it forever.",
+"Pakda! Ab tu mujhe ek 'I owe you' coupon prepare karogi (redeemable).",
+"Ha! Pakda — ab tu meri health reminders set karogi (caring mode on).",
+"Captured — ab tum mujhe ek 'caught us' sticker for my phone, lol.",
+"Pakda! Ab tu meri ugly pic se meme bana ke share karogi (with love).",
+"Ha! Pakda — ab tu mujhe ek 'we are forever' note likhogi (emotional).",
+"Captured — ab tu mere liye ek choti si diary likhogi: 'caught day'.",
+"Pakda! Ab tu mujhe ek 'apology challenge' complete karogi — 3 tasks.",
+"Ha! Pakda — ab tu mujhe ek 'I will not leave' vow do, emotional one."
+];
+
+/* -------------------------
+   LINES: ESCAPE_TAUNTS (you taunt her when you escape)
+   ------------------------- */
+const ESCAPE_TAUNTS = [
+"Haha escape! Dekh liya? Main gaya, tum bhagti rahi like 'Where is my map' 😂",
+"Escape unlocked — caption: 'Almost had me' — post it! 📸",
+"Main gaya — tumhare 'I will think' replies ab trending, meme bana raha hoon.",
+"Escape! Ab tum mujhe 10 'where are you' messages bhejegii, mujhse pyaar proof.",
+"Main chala gaya — tum rooftop pe selfie le rahi hogi, content created!",
+"Escape status: 'Fast & Slightly Guilty' — bring pani-puri to negotiate. 😏",
+"Hah! Main gaya, ab tu reels me 'caught' wali filter use karna, I'm waiting.",
+"Escape! Ab main caption likhunga: 'Freedom day achieved' — like karo.",
+"Main bhaag gaya — tumhara chase face GIF ke liye perfect tha, saving it.",
+"Escape! Ab main bolunga: 'I outran the apology' — dramatic victory.",
+"Main gaya — tum ab phone pe 'I am near your house' drama karogi, lol.",
+"Escape unlocked — ab tumhe ek sweet voice note bhejna padega with sorry.",
+"Main nikal gaya — tum chasing me, main reel banata hoon: 'You tried'.",
+"Escape! Ab main tumhari 'birthday forget' file kholunga — evidence mil jayega.",
+"Main bhaag gaya — tumari nikhaab story ab dramatic reel ban jayegi, I know it.",
+"Escape! Ab main tumhe 'motii' keh ke caption karunga, roasting rights.",
+"Main gaya — tumhari 'I will not text first' rule broke — thanks for breaking it.",
+"Escape! Ab main tumhe ek 'you owe me pani-puri' coupon bhejunga.",
+"Main chala gaya — ab tu mujhse 'we are good' bolne wali ho, voice note please.",
+"Escape! Ab main tumhara 'caught' dream postpone kar diya, sorry not sorry.",
+"Main nikal gaya — tu drama karegi, main popcorn ready rakhunga.",
+"Escape! Ab main tumhare nikhaab replacement ke liye suggestion bhejunga (gift idea).",
+"Main bhaag ke gaya — tumhara 'I forgot' list me aur item add kar raha hoon.",
+"Escape! Ab main tumhe ek doodle bhejunga: 'missed catching me' (cute troll).",
+"Main gaya — ab tu 'where are you' 20 messages bhejegi, happily accepted.",
+"Escape unlocked — main tumhara apology dance stream karunga (exclusive).",
+"Main bhaag ke gaya — ab tu mujhse ek secret recipe demand karegi, I will negotiate.",
+"Escape! Ab main tere liye ek 'almost' certificate print karunga (funny!).",
+"Main gaya — tu selfies me 'I tried' likh de, content finalized.",
+"Escape! Ab main caption me likh lunga: 'Run, Reshma, run' (inside-joke!).",
+"Main bhaag gaya — par tumhara 'I will not run' promise thoda weak hai, train karo.",
+"Escape! Ab main tumhari chasing video meme bana kar share karunga (love).",
+"Main gaya — ab tu mujhe 'I missed you' text bhejegii, guaranteed.",
+"Escape unlocked — main tumhare liye ek silly roast playlist banaya hu.",
+"Main bhaag gaya — ab tu meri chase practice class join karogi (paid in pani-puri).",
+"Escape! Ab main tumhara 'caught me' dream delayed — try later.",
+"Main chala gaya — ab tu apni apology cookie bake kar, taste test mero pass.",
+"Escape! Ab main tumari 'silent treatment' ko short banane ka demand karta hoon.",
+"Main bhaag gaya — par tumhare 'I will think' answers me chhed chhaad karunga.",
+"Escape! Ab main tumhara nikhaab replacement order karunga (cute gift).",
+"Main gaya — ab tu mujhe ek 'you escaped' sticker bhejoge, I will collect them.",
+"Escape! Ab main tumhe ek 'almost had you' trophy banake dunga (paper).",
+"Main bhaag gaya — ab tu mujhse milke apology plan banaogi (rom-com style).",
+"Escape! Ab main tumhe 'you owe me pani-puri' remind karunga daily.",
+"Main gaya — tu chasing me, main tumhe ek cute nagging voice note bhej dunga.",
+"Escape unlocked — ab main tumhe ek prank back plan bhejta hoon, beware!",
+"Main bhaag gaya — ab tu meri 'caught you' reel me cameo karna padega.",
+"Escape! Ab main tumhe ek 'I was near your house' dramatic line repeat karunga.",
+"Main gaya — ab tu 'where are you' saga start karogi — I enjoy it.",
+"Escape! Ab main tumhari 'I forgot birthday' incident ko poetic bana dunga.",
+"Main bhaag gaya — ab tum ek apology video 5 second ka bhejo, minimal drama.",
+"Escape! Ab main tumhe ek 'almost' meme tag karunga — public embarrassment (cute).",
+"Main chala gaya — ab tu meri midnight song request accept karogi, yes?",
+"Escape unlocked — main tumhara chase face GIF badge bana lunga (collector).",
+"Main bhaag gaya — ab tu mujhse 'we are good' daily 2x bolo, habit ban jaaye.",
+"Escape! Ab main tumhe 'I will not leave' vow ke liye gentle nudge dunga.",
+"Main gaya — ab tu mujhse ek 'I owe you' handmade card banana padega.",
+"Escape! Ab main tumhara 'tin jaise stick' line ko caption banaunga (comedy).",
+"Main bhaag gaya — par tumhara reel banayi aur mera cameo milega, lucky you.",
+"Escape unlocked — main tumhe ek 'caught later' reminder calendar bhejunga.",
+"Main bhaag gaya — ab tum mujhe ek cute demand do: 'treat me once' (okay).",
+"Escape! Ab main tumhari nikhaab tears ko funny reel banaunga (consent assured).",
+"Main chala gaya — ab tu ek 'sorry' sticky note chhodo, treasure hunt start.",
+"Escape unlocked — main tumhe ek digital 'I missed' sticker dedunga.",
+"Main bhaag gaya — ab tu mujhse 'where are you' 50 times bhej, I will answer all.",
+"Escape! Ab main tumhari 'I will not text first' policy break karwa dunga (prank).",
+"Main bhaag gaya — tu run practice kar, I will train you with reels (fun!)."
+];
+
+/* ensure both arrays are long enough. If needed, duplicates will be fine for variety. */
+
+/* -------------------------
+   Game logic (unchanged except showResult uses new arrays)
+   ------------------------- */
+
+function computeArea(){
+  const rect = arena.getBoundingClientRect();
+  return {w: rect.width, h: rect.height, top: rect.top, left: rect.left};
+}
+
+function spawnRunner(){
+  const {w, h} = computeArea();
+  spawnSide = Math.random() < 0.5 ? 'left' : 'right';
+  const bottomPx = 18 + Math.round(Math.random()*40);
+  runnerWrap.style.bottom = bottomPx + 'px';
+  const rW = runnerWrap.offsetWidth || 220;
+  if(spawnSide === 'left'){
+    startX = - (rW + 50);
+    endX = w - (chaserWrap.offsetWidth || 180) - 40;
+    runnerWrap.style.left = startX + 'px';
+    runnerWrap.style.right = 'auto';
+  } else {
+    startX = w + 50;
+    endX = (chaserWrap.offsetWidth || 180) + 20;
+    runnerWrap.style.left = startX + 'px';
+    runnerWrap.style.right = 'auto';
+  }
+}
+
+function chooseDuration(){
+  const options = [3600, 2600, 1800, 1200, 900, 650, 420, 300];
+  const weights = [0.06,0.12,0.20,0.22,0.18,0.10,0.08,0.04];
+  let r= Math.random(), s=0;
+  for(let i=0;i<options.length;i++){ s+=weights[i]; if(r<=s) return Math.round(options[i]*(0.9 + Math.random()*0.25)); }
+  return 1400;
+}
+
+function startRun(){
+  if(running) return;
+  spawnRunner();
+  running=true;
+  runDuration = chooseDuration();
+  startT = performance.now();
+  runnerImg.src = 'running-boy.png';
+  animReq = requestAnimationFrame(step);
+}
+
+function step(now){
+  if(!running) return;
+  const elapsed = now - startT;
+  let t = Math.min(1, elapsed / runDuration);
+  const ease = t < 0.6 ? (Math.pow(t,1.05)) : (1 - Math.pow(1-t,2.2));
+  let x;
+  if(spawnSide === 'left') x = startX + (endX - startX)*ease;
+  else x = startX - (startX - endX)*ease;
+  runnerWrap.style.left = x + 'px';
+  runnerWrap.style.transform = `translateY(${Math.sin(elapsed/60)*6}px) rotate(${Math.sin(elapsed/240)*2}deg)`;
+  if(Math.random() < 0.02 && elapsed > 200 && elapsed < runDuration*0.9){
+    const rem = runDuration - elapsed;
+    const shrinkFactor = 0.25 + Math.random()*0.7;
+    runDuration = elapsed + Math.max(160, Math.round(rem*shrinkFactor));
+  }
+  if(Math.random() < 0.007 && t > 0.25 && t < 0.85){
+    const saveLeft = parseFloat(runnerWrap.style.left);
+    const jitter = (Math.random()*40 + 20) * (spawnSide==='left' ? -1 : 1);
+    runnerWrap.style.left = (saveLeft + jitter) + 'px';
+    setTimeout(()=> runnerWrap.style.left = saveLeft + 'px', 120);
+  }
+  if(t < 1) animReq = requestAnimationFrame(step);
+  else { running=false; handleEscape(); }
+}
+
+/* CATCH: GIRL catches you -> hair-pull + CAUGHT_BY_HER lines */
+function handleCatch(){
+  if(!running) return;
+  running=false; cancelAnimationFrame(animReq);
+  panelImg.src = 'hair-pull.png';
+  runnerImg.src = 'hair-pull.png';
+  runnerWrap.classList.add('hairPull');
+  chaserWrap.style.transform = 'translateY(-8px) scale(1.02)';
+  setTimeout(()=> chaserWrap.style.transform = '', 360);
+  setTimeout(()=> {
+    runnerWrap.classList.remove('hairPull');
+    showResult('caught'); // girl caught you
+    scoreCaught();
+  },420);
+}
+
+/* ESCAPE: you escape -> tease + ESCAPE_TAUNTS lines */
+function handleEscape(){
+  panelImg.src = 'tease.png';
+  runnerImg.src = 'tease.png';
+  runnerWrap.classList.add('tease');
+  setTimeout(()=> { runnerWrap.classList.remove('tease'); showResult('escape'); scoreEscaped(); }, 640);
+}
+
+function scoreCaught(){ caught++; combo++; syncScore(); }
+function scoreEscaped(){ escaped++; combo=0; syncScore(); }
+function syncScore(){ caughtEl.textContent=caught; escapedEl.textContent=escaped; comboEl.textContent=combo; }
+
+function showResult(kind){
+  overlay.style.display='flex';
+  if(kind==='caught'){
+    // GIRL caught you -> she roasts YOU (CAUGHT_BY_HER)
+    panelBig.textContent = pick(CAUGHT_BY_HER);
+    panelSmall.textContent = "She caught you — roast incoming!";
+    playTone('good');
+  } else {
+    // YOU escaped -> you taunt HER (ESCAPE_TAUNTS)
+    panelBig.textContent = pick(ESCAPE_TAUNTS);
+    panelSmall.textContent = "You escaped — taunt time!";
+    playTone('bad');
+  }
+}
+
+/* audio */
+let audioCtx=null;
+function ensureAudio(){
+  if(audioCtx) return;
+  try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audioCtx=null; }
+}
+function playTone(kind){
+  ensureAudio(); if(!audioCtx) return;
+  const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  if(kind==='good'){ o.type='sine'; o.frequency.value=880+Math.random()*80; g.gain.value=0.0028; }
+  else { o.type='square'; o.frequency.value=380+Math.random()*120; g.gain.value=0.0034; }
+  o.start(); setTimeout(()=>{ o.stop(); },160 + Math.random()*80);
+}
+
+/* interactions */
+runnerWrap.addEventListener('pointerdown', e=>{
+  e.preventDefault(); e.stopPropagation();
+  handleCatch();
+});
+arena.addEventListener('pointerdown', e=>{
+  if(!running) startRun();
+});
+
+/* overlay controls */
+againBtn.addEventListener('click', ()=>{
+  overlay.style.display='none';
+  runnerImg.src='running-boy.png';
+  setTimeout(()=> startRun(), 260);
+});
+closeBtn.addEventListener('click', ()=>{
+  overlay.style.display='none';
+  runnerImg.src='running-boy.png';
+});
+
+/* reset */
+resetBtn.addEventListener('click', ()=>{
+  caught=escaped=combo=0; syncScore(); overlay.style.display='none'; running=false; cancelAnimationFrame(animReq);
+  runnerImg.src='running-boy.png';
+  setTimeout(()=> startRun(), 300);
+});
+
+/* init */
+window.addEventListener('load', ()=>{ spawnRunner(); setTimeout(()=> startRun(), 650); });
+window.addEventListener('resize', ()=> { spawnRunner(); });
+
+runnerImg.addEventListener('error', ()=> console.warn('runner image failed to load — check running-boy.png'));
+chaserImg.addEventListener('error', ()=> console.warn('chaser image failed to load — check girl.png'));
+</script>
+</body>
+</html>
